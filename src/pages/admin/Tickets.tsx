@@ -13,6 +13,7 @@ import {
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchWithToken } from "../../utils/api";
+import { useAuth } from "../../context/AuthContext";
 import {
 	formatDate,
 	translatePriority,
@@ -52,6 +53,7 @@ const PRIORITY_COLOR: Record<
 export default function Tickets() {
 	const [ticket, setTicket] = useState<TicketType[]>([]);
 	const navigate = useNavigate();
+	const { token } = useAuth();
 
 	useEffect(() => {
 		fetchWithToken(`${import.meta.env.VITE_API_URL}/api/tickets/`)
