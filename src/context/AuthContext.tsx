@@ -1,8 +1,6 @@
 import { jwtDecode } from "jwt-decode";
 import { createContext, useContext, useEffect, useState } from "react";
 
-const AuthContext = createContext<AuthContextType | null>(null);
-
 interface LoginInfos {
 	email: string;
 	password: string;
@@ -16,19 +14,23 @@ interface User {
 	lastname: string;
 }
 
-// décrit ce qu'il va se passer pour l'utilisateur
 interface AuthContextType {
-	user: User | null; // l'utilisateur connecté, ou null si déconnecté
-	token: string | null; // le token d'authentification, ou null si déconnecté
-	handleLogin: (infos: LoginInfos) => Promise<User>; // fonction pour se connecter
-	handleLogout: () => void; // fonction pour se déconnecter
+	user: User | null;
+	isLoading: boolean;
+	handleLogin: (infos: LoginInfos) => Promise<User>;
+	handleLogout: () => void;
 }
+
+const AuthContext = createContext<AuthContextType | null>(null);
 
 export default function AuthProvider({
 	children,
 }: {
 	children: React.ReactNode;
 }) {
+	const [user, setUser] = useState<User | null>(null);
+	const [isLoading, setIsLoading] = useState(true);
+
 	useEffect(() => {
 		const token = localStorage.getItem("token");
 
@@ -47,9 +49,9 @@ export default function AuthProvider({
 				localStorage.removeItem("token");
 			}
 		}
-	}, []);
 
-	const [user, setUser] = useState<User | null>(null);
+		setIsLoading(false);
+	}, []);
 
 	const handleLogin = async (infos: LoginInfos): Promise<User> => {
 		const newData = { email: infos.email, password: infos.password };
@@ -64,12 +66,14 @@ export default function AuthProvider({
 				body: JSON.stringify(newData),
 			},
 		);
+
 		if (!response.ok) {
 			throw new Error("fonctionne pas");
 		}
 		const data = await response.json();
 		setToken(data.token);
 
+		const data = await response.json();
 		setUser(data.userDTO);
 		localStorage.setItem("token", data.token);
 		return data.userDTO;
@@ -81,7 +85,7 @@ export default function AuthProvider({
 	};
 
 	return (
-		<AuthContext value={{ user, token, handleLogin, handleLogout }}>
+		<AuthContext value={{ user, isLoading, handleLogin, handleLogout }}>
 			{children}
 		</AuthContext>
 	);
@@ -93,5 +97,6 @@ export const useAuth = () => {
 	if (!context) {
 		throw new Error("useAuth must be used within an AuthProvider");
 	}
+
 	return context;
 };
