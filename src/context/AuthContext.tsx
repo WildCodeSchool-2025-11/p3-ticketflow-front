@@ -70,8 +70,6 @@ export default function AuthProvider({
 		if (!response.ok) {
 			throw new Error("fonctionne pas");
 		}
-		const data = await response.json();
-		setToken(data.token);
 
 		const data = await response.json();
 		setUser(data.userDTO);
